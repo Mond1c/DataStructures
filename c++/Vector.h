@@ -1,13 +1,18 @@
-#pragma once
+#ifndef DATA_VECTOR_H
+#define DATA_VECTOR_H
+
 #include <iostream>
 
 template<typename T>
 class Vector {
 public:
-    Vector() = default;
+    Vector() {
+        arr_ = new T[1];
+        capacity_ = 1;
+    }
     Vector(Vector& other) {
         if (this != &other) {
-            if (arr_) delete[] arr_;
+            delete[] arr_;
             arr_ = other.arr_;
             size_ = other.size_;
             capacity_ = other.capacity_;
@@ -15,9 +20,9 @@ public:
             other.size_ = other.capacity_ = 0;
         }
     }
-    Vector(Vector&& other) {
+    Vector(Vector&& other)  noexcept {
         if (this != &other) {
-            if (arr_) delete[] arr_;
+            delete[] arr_;
             arr_ = other.arr_;
             size_ = other.size_;
             capacity_ = other.capacity_;
@@ -37,7 +42,7 @@ public:
         return *this;
     }
 
-    Vector& operator=(Vector&& other) {
+    Vector& operator=(Vector&& other) noexcept {
         if (this != &other) {
             delete[] arr_;
             arr_ = other.arr_;
@@ -69,6 +74,13 @@ public:
         if (size_ >= capacity_) addMemory();
         arr_[size_++] = value;
     }
+
+    void remove(size_t index) {
+        for (size_t i = index + 1; i < size_; ++i) {
+            arr_[i - 1] = arr_[i];
+        }
+        --size_;
+    }
 public:
     T* begin() {
         return &arr_[0];
@@ -96,16 +108,16 @@ public:
 private:
 
     void addMemory() {
-        if (capacity_ == 0) capacity_ = 1;
         capacity_ *= 2;
         T* tmp = arr_;
         arr_ = new T[capacity_];
-        for (int i = 0; i < size_; ++i) arr_[i] = tmp[i];
+        for (size_t i = 0; i < size_; ++i) arr_[i] = tmp[i];
+        delete[] tmp;
     }
 
     T* arr_;
-    size_t size_;
-    size_t capacity_;
+    size_t size_{};
+    size_t capacity_{};
 };
 
 template<typename T>
@@ -113,3 +125,5 @@ inline std::ostream& operator<<(std::ostream& os, const Vector<T>& vec) {
     for (const T& val : vec) os << val << " ";
     return os;
 }
+
+#endif
